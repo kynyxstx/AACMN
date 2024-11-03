@@ -14,4 +14,7 @@ Route::middleware([
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
+    Route::get('/testing', function () {
+        return view('livewire.testing-index');
+    })->name('testing');
 });
