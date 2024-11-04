@@ -14,7 +14,13 @@ Route::middleware([
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
+
     Route::get('/testing', function () {
         return view('livewire.testing-index');
     })->name('testing');
+
+    // Add your new route for products here
+    Route::get('/product', function () { 
+        return view('livewire.product-index');
+    })->name('product');
 });

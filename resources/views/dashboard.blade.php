@@ -11,5 +11,7 @@
                 @livewire('counter')              
             </div>
         </div>
+
+        
     </div>
 </x-app-layout>
