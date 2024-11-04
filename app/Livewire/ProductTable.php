@@ -3,8 +3,8 @@
 namespace App\Livewire;
 
 use Livewire\Component;
-use Livewire\WithPagination;
 use App\Models\Product;
+use Livewire\WithPagination;
 
 class ProductTable extends Component
 {
@@ -17,7 +17,7 @@ class ProductTable extends Component
     public $description = '';
 
     protected $paginationTheme = 'tailwind';
-    protected $perPage = 10;
+    protected $perPage = 2;
 
     protected $rules = [
         'product_name' => 'required|string|max:255',
