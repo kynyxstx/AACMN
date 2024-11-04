@@ -18,7 +18,16 @@
                 </div>
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link wire:navigate href="{{ route('testing') }}" :active="request()->routeIs('testing')">
+<<<<<<< HEAD
                         {{ __('Testing') }}
+=======
+                        {{ __('Account') }}
+                    </x-nav-link>
+                </div>
+                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                    <x-nav-link wire:navigate href="{{ route('product') }}" :active="request()->routeIs('product')">
+                        {{ __('Product') }}
+>>>>>>> main
                     </x-nav-link>
                 </div>
             </div>
