@@ -52,7 +52,7 @@
         <select wire:model="condition" id="condition"
             class="bg-gray-50 border {{ $errors->has('condition') ? 'border-red-500 text-red-600' : 'border-gray-300 text-gray-900' }} text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 {{ $errors->has('condition') ? 'dark:border-red-500 dark:text-red-500' : '' }}"
             required>
-            <option>Select Condition</option>
+            <option value="">Select Condition</option>
             <option value="new">New</option>
             <option value="old">Old</option>
             <option value="second_hand">Second Hand</option>
@@ -61,7 +61,6 @@
     @error('condition')
         <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p>
     @enderror
-
 
     <!-- Description Field -->
     <div class="mb-2" style="width: 400px;">
@@ -110,6 +109,7 @@
                     <th scope="col" class="px-6 py-3">Price</th>
                     <th scope="col" class="px-6 py-3">Condition</th>
                     <th scope="col" class="px-6 py-3">Description</th>
+                    <th scope="col" class="px-6 py-3">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -120,13 +120,150 @@
                         <td class="py-2 px-4 border-t border-gray-100">{{ $product->price }}</td>
                         <td class="py-2 px-4 border-t border-gray-100">{{ $product->condition }}</td>
                         <td class="py-2 px-4 border-t border-gray-100">{{ $product->description }}</td>
+                        <td class="py-2 px-4 border-t border-gray-100">
+                            <button wire:click="openEditModal({{ $product->id }})"
+                                class="font-medium text-blue-600">Edit</button>
+                            <button wire:click="openDeleteModal({{ $product->id }})"
+                                class="font-medium text-red-600">Delete</button>
                     </tr>
                 @endforeach
             </tbody>
         </table>
     </div>
 
+
     <div class="mt-8 p-10 w-full">
         {{ $products->links() }}
     </div>
+
+    <!-- Edit Modal -->
+    @if($isEditModalOpen)
+            <!-- Modal Overlay -->
+            <div class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                <!-- Modal Container -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-lg w-full">
+                    <!-- Modal Header -->
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                            Edit Product
+                        </h3>
+                        <button wire:click="closeModal" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-400">
+                            &#x2715; <!-- Close Icon -->
+                        </button>
+                    </div>
+
+                    <!-- Modal Body -->
+                    <div>
+                        <form wire:submit.prevent="saveProduct">
+                            <!-- Product Name Input -->
+                            <div class="mb-4">
+                                <label for="product_name"
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Product Name</label>
+                                <input wire:model="product_name" type="text" id="product_name" placeholder="Enter Product Name"
+                                    class="w-full mt-1 p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" />
+                                @error('product_name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+
+                            <!-- Quantity Input -->
+                            <div class="mb-4">
+                                <label for="quantity"
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Quantity</label>
+                                <input wire:model="quantity" type="number" id="quantity" placeholder="Enter Quantity"
+                                    class="w-full mt-1 p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" />
+                                @error('quantity') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+
+                            <!-- Price Input -->
+                            <div class="mb-4">
+                                <label for="price"
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Price</label>
+                                <input wire:model="price" type="number" id="price" placeholder="Enter Price"
+                                    class="w-full mt-1 p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" />
+                                @error('price') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+
+                            <!-- Condition Input -->
+                            <div class="mb-4">
+                                <label for="condition"
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Condition</label>
+                                <select wire:model="condition" id="condition"
+                                    class="w-full mt-1 p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
+                                    <option value="">Select Condition</option>
+                                    <option value="New">New</option>
+                                    <option value="Slightly Used">Slightly Used</option>
+                                    <option value="Old">Old</option>
+                                </select>
+                                @error('condition') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+
+                            <!-- Description Input -->
+                            <div class="mb-4">
+                                <label for="description"
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                                <textarea wire:model="description" id="description" placeholder="Enter product description"
+                                    class="w-full mt-1 p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"></textarea>
+                                @error('description') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+
+
+                            <!-- Save Button -->
+                            <div class="flex justify-end space-x-2">
+                                <button type="button" wire:click="closeModal"
+                                    class="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400">
+                                    Cancel
+                                </button>
+                                <button type="submit"
+                                    class="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400">
+                                    Save Changes
+                                </button>
+                            </div>
+
+                    </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endif
+
+<!-- Delete Confirmation Modal -->
+@if($isDeleteModalOpen)
+    <!-- Modal Overlay -->
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <!-- Modal Container -->
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-lg w-full">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                    Confirm Deletion
+                </h3>
+                <button wire:click="$set('isDeleteModalOpen', false)"
+                    class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-400">
+                    &#x2715; <!-- Close Icon -->
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="text-center text-gray-800 dark:text-gray-200 mb-6">
+                <p>Are you sure you want to delete this product?</p>
+                <p>This action cannot be undone.</p>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="flex justify-end space-x-4">
+                <!-- Cancel Button -->
+                <button wire:click="$set('isDeleteModalOpen', false)"
+                    class="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400">
+                    Cancel
+                </button>
+                <!-- Delete Button -->
+                <button wire:click="deleteProduct"
+                    class="px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-400">
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+@endif
+
+
 </div>

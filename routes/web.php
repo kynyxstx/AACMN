@@ -20,7 +20,7 @@ Route::middleware([
     })->name('testing');
 
     // Add your new route for products here
-    Route::get('/product', function () { 
+    Route::get('/product', function () {
         return view('livewire.product-index');
     })->name('product');
 });

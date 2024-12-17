@@ -16,6 +16,14 @@ class ProductTable extends Component
     public $condition = ''; // This will store the selected condition
     public $description = '';
 
+    // Variables for edit modal
+    public $isEditModalOpen = false;
+    public $editProductId;
+
+    // Variables for delete modal
+    public $isDeleteModalOpen = false;
+    public $deletingProductId;
+
     protected $paginationTheme = 'tailwind';
     protected $perPage = 2;
 
@@ -27,6 +35,18 @@ class ProductTable extends Component
         'description' => 'nullable|string|max:1000',
     ];
 
+    protected $listeners = ['refreshProducts' => '$refresh'];
+
+    public function mount()
+    {
+        $this->resetPage();
+    }
+
+    public function updated($propertyName)
+    {
+        $this->validateOnly($propertyName);
+    }
+
     protected $messages = [
         'product_name.required' => 'The product name is required.',
         'product_name.max' => 'The product name must not exceed 255 characters.',
@@ -36,24 +56,109 @@ class ProductTable extends Component
         'price.required' => 'The price is required.',
         'price.numeric' => 'The price must be a valid number.',
         'condition.required' => 'The condition is required.',
-        'condition.in' => 'The condition must be one of the following: New, Second Hand, Old.',
         'description.max' => 'The description must not exceed 1000 characters.',
     ];
 
+    // Close modal method for cancel/close buttons
+    public function closeModal()
+    {
+        $this->isEditModalOpen = false;
+        $this->isDeleteModalOpen = false;
+        $this->reset(['product_name', 'quantity', 'price', 'condition', 'description', 'editProductId']);
+    }
+
+    // Save product method (handles add or update logic)
+    public function saveProduct()
+    {
+        if ($this->editProductId) {
+            // Update existing product
+            $this->updateProduct();
+        } else {
+            // Add new product
+            $this->addProduct();
+        }
+    }
+
     public function addProduct()
     {
-        $this->validate();
+        try {
+            $this->validate();
 
-        Product::create([
-            'product_name' => $this->product_name,
-            'quantity' => $this->quantity,
-            'price' => $this->price,
-            'condition' => $this->condition,
-            'description' => $this->description,
-        ]);
+            Product::create([
+                'product_name' => $this->product_name,
+                'quantity' => $this->quantity,
+                'price' => $this->price,
+                'condition' => $this->condition,
+                'description' => $this->description,
+            ]);
 
-        $this->reset(['product_name', 'quantity', 'price', 'condition', 'description']);
-        session()->flash('message', 'Product added successfully!');
+            $this->closeModal();
+            session()->flash('message', 'Product added successfully!');
+        } catch (\Exception $e) {
+            session()->flash('error', 'There was an error adding the product.');
+            \Log::error('Error adding product: ' . $e->getMessage());
+        }
+    }
+
+    public function openEditModal($productId)
+    {
+        $product = Product::find($productId);
+
+        if ($product) {
+            $this->editProductId = $productId;
+            $this->product_name = $product->product_name;
+            $this->quantity = $product->quantity;
+            $this->price = $product->price;
+            $this->condition = $product->condition;
+            $this->description = $product->description;
+
+            $this->isEditModalOpen = true;
+        } else {
+            session()->flash('error', 'Product not found.');
+        }
+    }
+
+    public function updateProduct()
+    {
+        try {
+            $validatedData = $this->validate();
+
+            $product = Product::find($this->editProductId);
+            if ($product) {
+                $product->update($validatedData);
+                $this->closeModal();
+                session()->flash('message', 'Product updated successfully!');
+            } else {
+                session()->flash('error', 'Product not found.');
+            }
+        } catch (\Exception $e) {
+            session()->flash('error', 'Error updating product.');
+            \Log::error('Error updating product: ' . $e->getMessage());
+        }
+    }
+
+    public function openDeleteModal($productId)
+    {
+        $this->deletingProductId = $productId;
+        $this->isDeleteModalOpen = true;
+    }
+
+    public function deleteProduct()
+    {
+        try {
+            $product = Product::find($this->deletingProductId);
+
+            if ($product) {
+                $product->delete();
+                $this->closeModal();
+                session()->flash('message', 'Product deleted successfully!');
+            } else {
+                session()->flash('error', 'Product not found.');
+            }
+        } catch (\Exception $e) {
+            session()->flash('error', 'Error deleting product.');
+            \Log::error('Error deleting product: ' . $e->getMessage());
+        }
     }
 
     public function render()
